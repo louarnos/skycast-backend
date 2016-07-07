@@ -1,75 +1,58 @@
 'use strict';
 
 const controller = require('lib/wiring/controller');
-const models = require('app/models');
 const googleKey = process.env.GOOGLE_GEO_KEY;
 const weatherKey = process.env.WEATHER_KEY;
 const request = require('request');
-const queryController = require('./query.js');
 const authenticate = require('./concerns/authenticate');
 
 
-const geolocation = (req, res, next) => {
-  let urlGoogle = `https://www.googleapis.com/geolocation/v1/geolocate?key=${googleKey}`
+const localCurrentForecast = (req, res, next) => {
+  let coords = req.body.coords;
+  let urlWeather = `https://api.forecast.io/forecast/${weatherKey}/${coords.latitude},${coords.longitude}`;
+  request(urlWeather, function(error, response, body){
+    if(error){
+    console.log(error);
+    next();
+    }
+    res.json(JSON.parse(response.body));
+  });
+};
 
 
-  let requestData = {
-     "homeMobileCountryCode": 310,
-     "homeMobileNetworkCode": 260,
-     "radioType": "gsm",
-     "carrier": "T-Mobile",
-     "cellTowers": [
-      {
-       "cellId": 39627456,
-       "locationAreaCode": 40495,
-       "mobileCountryCode": 310,
-       "mobileNetworkCode": 260,
-       "age": 0,
-       "signalStrength": -95
-      }
-     ],
-     "wifiAccessPoints": [
-      {
-       "macAddress": "01:23:45:67:89:AB",
-       "signalStrength": 8,
-       "age": 0,
-       "signalToNoiseRatio": -65,
-       "channel": 8
-      },
-      {
-       "macAddress": "01:23:45:67:89:AC",
-       "signalStrength": 4,
-       "age": 0
-      }
-     ]
-   };
-
-  request.post(urlGoogle, requestData, function(error, response, body){
+const nonLocalCurrentForecast = (req, res, next) => {
+  let googleUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${req.body.input}&key=${googleKey}`;
+  request(googleUrl, function(error, response, body){
     if(error){
       console.log(error);
+      next();
     }
-    console.log(response);
     let data = JSON.parse(response.body);
-    let coords = {
-      "lon":  data.location.lng,
-      "lat": data.location.lat,
-    };
-
-    let urlWeather = `https://api.forecast.io/forecast/${weatherKey}/${coords.lat},${coords.lon}`;
-
-    request(urlWeather, function(error, response, body){
-      if(error){
-        console.log(error);
-      }
+    if(data.results.length > 1){
       res.json(JSON.parse(response.body));
-    });
+    }else if(data.results.length === 1) {
+      console.log(data.results);
+      let coords = data.results[0].geometry.location;
+      let urlWeather = `https://api.forecast.io/forecast/${weatherKey}/${coords.lat},${coords.lng}`;
+      request(urlWeather, function(error, response, body){
+        if(error){
+          console.log(error);
+          next();
+        }
+        res.json(JSON.parse(response.body));
+      });
+    }
   });
-}
+};
 
+const historicalForecast = (req, res, next) => {
+};
 
 
 module.exports = controller({
-  geolocation,
+  localCurrentForecast,
+  nonLocalCurrentForecast,
+  historicalForecast,
 }, { before: [
   { method: authenticate},
 ], });

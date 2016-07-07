@@ -16,8 +16,9 @@ module.exports = require('lib/wiring/routes')
 .delete('/sign-out/:id', 'users#signout')
 .patch('/change-password/:id', 'users#changepw')
 .resources('users', { only: ['index', 'show'] })
-.post('/geolocation', 'requests#geolocation')
+.post('/local-current-forecast', 'requests#localCurrentForecast')
+.post('/non-local-current-forecast', 'requests#nonLocalCurrentForecast')
+.post('/historical-forecast', 'requests#historicalForecast')
 .post('/query', 'query#create');
 
 // all routes created
-;

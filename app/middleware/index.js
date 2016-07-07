@@ -17,8 +17,16 @@ const before = (app) => {
   app.use(cors(corsOptions));
   app.use(favicon(path.join(app.get('root'), 'public', 'favicon.ico')));
   app.use(logger('dev'));
-  app.use(bodyParser.json());
-  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(bodyParser.urlencoded({
+          extended: true,
+       parameterLimit: 10000,
+       limit: 1024 * 1024 * 10
+  }));
+  app.use(bodyParser.json({
+          extended: true,
+       parameterLimit: 10000,
+       limit: 1024 * 1024 * 10
+  }));
 };
 
 const after = (app) => {

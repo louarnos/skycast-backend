@@ -3,8 +3,9 @@
 const controller = require('lib/wiring/controller');
 const models = require('app/models');
 const Query = models.query;
-
 const authenticate = require('./concerns/authenticate');
+
+
 
 const index = (req, res, next) => {
   Query.find()
@@ -20,12 +21,13 @@ const show = (req, res, next) => {
 
 const create = (req, res, next) => {
   console.log('create fired');
-  let query = Object.assign(req.body.query, {
+  let query = Object.assign({"response": req.body}, {
     _owner: req.currentUser._id,
   });
+  console.log(query);
   Query.create(query)
     .then(query => res.json({ query }))
-    .catch(err => next(err));
+    .catch(err => next(err.stack));
 };
 
 const update = (req, res, next) => {
