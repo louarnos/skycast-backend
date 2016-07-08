@@ -69,27 +69,35 @@ const historicalForecast = (req, res, next) => {
 
     //IF ONE RESULT, GET DATA IN BATCHES
     }else if(data.results.length === 1) {
+
       let coords = data.results[0].geometry.location;
       const OneDay = 86400;
       let timeFrame = Math.abs(req.body.startDate - req.body.endDate);
       let numberOfDays = timeFrame/OneDay;
-      console.log(numberOfDays);
-      let results = [];
 
-      for(let i = 0; i < numberOfDays; i++){
-        let currentDay = Number(req.body.startDate) + (i*OneDay);
-        let urlWeather = `https://api.forecast.io/forecast/${weatherKey}/${coords.lat},${coords.lng},${currentDay}`;
-        request(urlWeather, function(error, response, body){
-          if(error){
-            console.log(error);
-            next();
-          }
-          results.push(JSON.parse(response.body));
+
+      const makeMultipleQueries = (url) => {
+        return new Promise(function(resolve, reject) {
+          request(url, function(error, response, body){
+            if(error){
+              reject(error);
+            }
+            resolve(response.body);
+          });
         });
-        if(i === numberOfDays -1 ){
-        res.json(results);
-        }
+      };
+
+      let promises = [];
+      for (let i = 0; i < numberOfDays; i++) {
+        let currentDay = Number(req.body.startDate) + (i*OneDay);
+        let url = `https://api.forecast.io/forecast/${weatherKey}/${coords.lat},${coords.lng},${currentDay}`;
+        promises.push(makeMultipleQueries(url));
       }
+      Promise.all(promises).then(function(results) {
+          res.json(results);
+      }, function(err) {
+          next(err);
+      });
     }
   });
 };
