@@ -12,11 +12,10 @@ const localCurrentForecast = (req, res, next) => {
   let urlWeather = `https://api.forecast.io/forecast/${weatherKey}/${coords.latitude},${coords.longitude}`;
   request(urlWeather, function(error, response, body){
     if(error){
-    console.log(error);
-    next();
+    next(error);
     }
     res.json(JSON.parse(response.body));
-  })
+  });
 };
 
 //ACTION FOR REQUEST WITH UNKNOWN COORDS
@@ -24,8 +23,7 @@ const nonLocalCurrentForecast = (req, res, next) => {
   let googleUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${req.body.input}&key=${googleKey}`;
   request(googleUrl, function(error, response, body){
     if(error){
-      console.log(error);
-      next();
+      next(error);
     }
     let data = JSON.parse(response.body);
 
@@ -36,13 +34,11 @@ const nonLocalCurrentForecast = (req, res, next) => {
 
     //IF ONLY ONE RESULT, GET FORECAST
     }else if(data.results.length === 1) {
-      console.log(data.results);
       let coords = data.results[0].geometry.location;
       let urlWeather = `https://api.forecast.io/forecast/${weatherKey}/${coords.lat},${coords.lng}`;
       request(urlWeather, function(error, response, body){
         if(error){
-          console.log(error);
-          next();
+          next(error);
         }
         res.json(JSON.parse(response.body));
       });
@@ -51,25 +47,24 @@ const nonLocalCurrentForecast = (req, res, next) => {
 };
 
 const historicalForecast = (req, res, next) => {
-  console.log(req.body);
   let googleUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${req.body.input}&key=${googleKey}`;
   request(googleUrl, function(error, response, body){
     if(error){
-      console.log(error);
-      next();
+      next(error);
     }
     let data = JSON.parse(response.body);
     //IF MORE THAN ONE RESULT FROM GEOLOCATION QUERY
     //ADD DATES REQUESTED INTO RESPONSE AND
     //SEND LIST OF LOCATIONS BACK SO USER CAN CHOOSE
     if(data.results.length > 1){
-      response.body.startDate = req.body.startDate;
-      response.body.endDate = req.body.endDate;
-      res.json(JSON.parse(response.body));
+      let results = {};
+      results.startDate = req.body.startDate;
+      results.endDate = req.body.endDate;
+      results.locations = JSON.parse(response.body);
+      res.json(results);
 
     //IF ONE RESULT, GET DATA IN BATCHES
     }else if(data.results.length === 1) {
-
       let coords = data.results[0].geometry.location;
       const OneDay = 86400;
       let timeFrame = Math.abs(req.body.startDate - req.body.endDate);
@@ -94,7 +89,7 @@ const historicalForecast = (req, res, next) => {
         promises.push(makeMultipleQueries(url));
       }
       Promise.all(promises).then(function(results) {
-          res.json(results);
+          res.json({results});
       }, function(err) {
           next(err);
       });
