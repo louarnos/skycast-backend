@@ -21,13 +21,13 @@ const show = (req, res, next) => {
 
 const create = (req, res, next) => {
   console.log('create fired');
-  let query = Object.assign({"response": req.body}, {
+  let query = Object.assign(req.body, {
     _owner: req.currentUser._id,
   });
   console.log(query);
   Query.create(query)
     .then(query => res.json({ query }))
-    .catch(err => next(err.stack));
+    .catch(err => console.log(err.stack));
 };
 
 const update = (req, res, next) => {

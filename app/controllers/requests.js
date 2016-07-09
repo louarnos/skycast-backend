@@ -14,6 +14,8 @@ const localCurrentForecast = (req, res, next) => {
     if(error){
     next(error);
     }
+    let stuff = JSON.parse(response.body);
+    console.log(stuff.currently);
     res.json(JSON.parse(response.body));
   });
 };
