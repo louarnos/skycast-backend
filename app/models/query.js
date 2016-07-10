@@ -176,6 +176,13 @@ const querySchema = new mongoose.Schema({
       type: String,
     },
   },
+  identifier: {
+    type: String,
+    required: true,
+  },
+  location: {
+    type: String,
+  },
   _owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
