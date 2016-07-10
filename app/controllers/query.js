@@ -8,9 +8,11 @@ const authenticate = require('./concerns/authenticate');
 
 
 const index = (req, res, next) => {
-  Query.find()
+  let search = { _owner: req.currentUser._id };
+  console.log(req.currentUser);
+  Query.find(search)
     .then(querys => res.json({ querys }))
-    .catch(err => next(err));
+    .catch(err => console.log(err));
 };
 
 const show = (req, res, next) => {
@@ -66,5 +68,5 @@ module.exports = controller({
   update,
   destroy,
 }, { before: [
-  { method: authenticate, except: ['index', 'show',] },
+  { method: authenticate, except: ['show',] },
 ], });

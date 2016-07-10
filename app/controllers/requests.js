@@ -79,7 +79,7 @@ const historicalForecast = (req, res, next) => {
             if(error){
               reject(error);
             }
-            resolve(response.body);
+            resolve(JSON.parse(response.body));
           });
         });
       };

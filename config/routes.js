@@ -19,6 +19,7 @@ module.exports = require('lib/wiring/routes')
 .post('/local-current-forecast', 'requests#localCurrentForecast')
 .post('/non-local-current-forecast', 'requests#nonLocalCurrentForecast')
 .post('/historical-forecast', 'requests#historicalForecast')
-.post('/query', 'query#create');
+.post('/query', 'query#create')
+.get('/query', 'query#index');
 
 // all routes created
